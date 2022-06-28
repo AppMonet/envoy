@@ -52,6 +52,7 @@ TcpUpstream::onDownstreamEvent(Network::ConnectionEvent event) {
     conn_data->connection().close(Network::ConnectionCloseType::FlushWrite);
     return conn_data;
   } else if (event == Network::ConnectionEvent::LocalClose) {
+    ENVOY_CONN_LOG(debug, "Forwarding downstream close to parent NoFlush...");
     upstream_conn_data_->connection().close(Network::ConnectionCloseType::NoFlush);
   }
   return nullptr;
@@ -93,6 +94,7 @@ void HttpUpstream::addBytesSentCallback(Network::Connection::BytesSentCb) {
 Tcp::ConnectionPool::ConnectionData*
 HttpUpstream::onDownstreamEvent(Network::ConnectionEvent event) {
   if (event != Network::ConnectionEvent::Connected) {
+    ENVOY_CONN_LOG(debug, "Downstream event != connected");
     resetEncoder(Network::ConnectionEvent::LocalClose, false);
   }
   return nullptr;
@@ -101,6 +103,8 @@ HttpUpstream::onDownstreamEvent(Network::ConnectionEvent event) {
 void HttpUpstream::onResetStream(Http::StreamResetReason, absl::string_view) {
   read_half_closed_ = true;
   write_half_closed_ = true;
+
+  ENVOY_CONN_LOG(debug, "Stream Reset httpUpstream");
   resetEncoder(Network::ConnectionEvent::LocalClose);
 }
 
@@ -135,6 +139,7 @@ void HttpUpstream::resetEncoder(Network::ConnectionEvent event, bool inform_down
 void HttpUpstream::doneReading() {
   read_half_closed_ = true;
   if (write_half_closed_) {
+    ENVOY_CONN_LOG(debug, "doneReading()");
     resetEncoder(Network::ConnectionEvent::LocalClose);
   }
 }
@@ -142,6 +147,7 @@ void HttpUpstream::doneReading() {
 void HttpUpstream::doneWriting() {
   write_half_closed_ = true;
   if (read_half_closed_) {
+    ENVOY_CONN_LOG(debug, "doneWriting()");
     resetEncoder(Network::ConnectionEvent::LocalClose);
   }
 }
@@ -318,7 +324,7 @@ bool Http1Upstream::isValidResponse(const Http::ResponseHeaderMap& headers) {
   // established.
   // Any 'Content-Length' or 'Transfer-Encoding' header fields MUST be ignored.
   // https://tools.ietf.org/html/rfc7231#section-4.3.6
-  return Http::CodeUtility::is2xx(Http::Utility::getResponseStatus(headers));
+  return !Http::CodeUtility::is5xx(Http::Utility::getResponseStatus(headers));
 }
 
 void Http1Upstream::encodeData(Buffer::Instance& data, bool end_stream) {

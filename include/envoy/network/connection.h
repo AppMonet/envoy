@@ -65,9 +65,9 @@ public:
  * Type of connection close to perform.
  */
 enum class ConnectionCloseType {
-  FlushWrite, // Flush pending write data before raising ConnectionEvent::LocalClose
-  NoFlush,    // Do not flush any pending data and immediately raise ConnectionEvent::LocalClose
-  FlushWriteAndDelay // Flush pending write data and delay raising a ConnectionEvent::LocalClose
+  FlushWrite, // Flush pending write data before raising ConnectionEvent::LocalClose 0
+  NoFlush,    // Do not flush any pending data and immediately raise ConnectionEvent::LocalClose 1
+  FlushWriteAndDelay // Flush pending write data and delay raising a ConnectionEvent::LocalClose 2
                      // until the delayed_close_timeout expires
 };
 

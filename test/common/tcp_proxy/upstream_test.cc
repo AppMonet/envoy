@@ -153,7 +153,7 @@ TYPED_TEST(HttpUpstreamTest, OnFailureCalledOnInvalidResponse) {
   this->upstream_->setConnPoolCallbacks(std::move(conn_pool_callbacks));
   EXPECT_CALL(*conn_pool_callbacks_raw, onFailure());
   EXPECT_CALL(*conn_pool_callbacks_raw, onSuccess(_)).Times(0);
-  Http::ResponseHeaderMapPtr headers{new Http::TestResponseHeaderMapImpl{{":status", "404"}}};
+  Http::ResponseHeaderMapPtr headers{new Http::TestResponseHeaderMapImpl{{":status", "503"}}};
   this->upstream_->responseDecoder().decodeHeaders(std::move(headers), false);
 }
 
