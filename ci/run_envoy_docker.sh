@@ -53,6 +53,8 @@ fi
 [[ -z "${ENVOY_DOCKER_BUILD_DIR}" ]] && ENVOY_DOCKER_BUILD_DIR="${DEFAULT_ENVOY_DOCKER_BUILD_DIR}"
 # Replace backslash with forward slash for Windows style paths
 ENVOY_DOCKER_BUILD_DIR="${ENVOY_DOCKER_BUILD_DIR//\\//}"
+
+echo "Creating ${ENVOY_DOCKER_BUILD_DIR}" >&2;
 mkdir -p "${ENVOY_DOCKER_BUILD_DIR}"
 
 [[ -t 1 ]] && ENVOY_DOCKER_OPTIONS+=("-it")
@@ -60,6 +62,8 @@ mkdir -p "${ENVOY_DOCKER_BUILD_DIR}"
 [[ -n "${SSH_AUTH_SOCK}" ]] && ENVOY_DOCKER_OPTIONS+=(-v "${SSH_AUTH_SOCK}:${SSH_AUTH_SOCK}" -e SSH_AUTH_SOCK)
 
 export ENVOY_BUILD_IMAGE="${IMAGE_NAME}:${IMAGE_ID}"
+
+echo -e "Source: ${SOURCE_DIR}" >&2;
 
 # Since we specify an explicit hash, docker-run will pull from the remote repo if missing.
 docker run --rm \
@@ -71,12 +75,13 @@ docker run --rm \
        -e HTTPS_PROXY \
        -e NO_PROXY \
        -e BAZEL_STARTUP_OPTIONS \
-       -e BAZEL_BUILD_EXTRA_OPTIONS \
+       -e BAZEL_BUILD_EXTRA_OPTIONS="  --sandbox_debug " \
        -e BAZEL_EXTRA_TEST_OPTIONS \
        -e BAZEL_REMOTE_CACHE \
        -e ENVOY_STDLIB \
        -e BUILD_REASON \
        -e BAZEL_REMOTE_INSTANCE \
+       -e BAZEL_JAVAC_OPTS="-J-Xms384m -J-Xmx10g" \
        -e GCP_SERVICE_ACCOUNT_KEY \
        -e NUM_CPUS \
        -e ENVOY_RBE \

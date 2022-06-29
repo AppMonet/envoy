@@ -76,6 +76,7 @@ int reasonToReset(StreamResetReason reason) {
   case StreamResetReason::ConnectError:
     return NGHTTP2_CONNECT_ERROR;
   default:
+    ENVOY_LOG_MISC(debug, "Unexpected reasonToReset {}", reason);
     return NGHTTP2_NO_ERROR;
   }
 }
@@ -529,8 +530,9 @@ void ConnectionImpl::StreamImpl::resetStream(StreamResetReason reason) {
   if (local_end_stream_ && !local_end_stream_sent_) {
     parent_.pending_deferred_reset_ = true;
     deferred_reset_ = reason;
-    ENVOY_CONN_LOG(trace, "deferred reset stream", parent_.connection_);
+    ENVOY_CONN_LOG(debug, "deferred reset stream", parent_.connection_);
   } else {
+    ENVOY_CONN_LOG(debug, "resetting stream because {}", parent_.connection_, reason);
     resetStreamWorker(reason);
   }
 
@@ -1136,6 +1138,7 @@ Status ConnectionImpl::sendPendingFrames() {
   //       to short circuit requests. In the best effort case, we complete the stream before
   //       resetting. In other cases, we just do the reset now which will blow away pending data
   //       frames and release any memory associated with the stream.
+  ENVOY_CONN_LOG(debug, "Pending Deferred Reset of everything; closing streams", connection_);
   if (pending_deferred_reset_) {
     pending_deferred_reset_ = false;
     for (auto& stream : active_streams_) {

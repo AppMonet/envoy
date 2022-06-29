@@ -1159,6 +1159,7 @@ ParserStatus ServerConnectionImpl::onMessageCompleteBase() {
 }
 
 void ServerConnectionImpl::onResetStream(StreamResetReason reason) {
+  ENVOY_LOG(debug, "reset stream with reason: {}", Http::Utility::resetReasonToString(reason));
   active_request_.value().response_encoder_.runResetCallbacks(reason);
   active_request_.reset();
 }

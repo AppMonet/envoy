@@ -52,7 +52,7 @@ TcpUpstream::onDownstreamEvent(Network::ConnectionEvent event) {
     conn_data->connection().close(Network::ConnectionCloseType::FlushWrite);
     return conn_data;
   } else if (event == Network::ConnectionEvent::LocalClose) {
-    ENVOY_CONN_LOG(debug, "Forwarding downstream close to parent NoFlush...");
+    ENVOY_LOG_MISC(debug, "Forwarding downstream close to parent NoFlush...");
     upstream_conn_data_->connection().close(Network::ConnectionCloseType::NoFlush);
   }
   return nullptr;
@@ -94,7 +94,7 @@ void HttpUpstream::addBytesSentCallback(Network::Connection::BytesSentCb) {
 Tcp::ConnectionPool::ConnectionData*
 HttpUpstream::onDownstreamEvent(Network::ConnectionEvent event) {
   if (event != Network::ConnectionEvent::Connected) {
-    ENVOY_CONN_LOG(debug, "Downstream event != connected");
+    ENVOY_LOG_MISC(debug, "Downstream event != connected");
     resetEncoder(Network::ConnectionEvent::LocalClose, false);
   }
   return nullptr;
@@ -104,7 +104,7 @@ void HttpUpstream::onResetStream(Http::StreamResetReason, absl::string_view) {
   read_half_closed_ = true;
   write_half_closed_ = true;
 
-  ENVOY_CONN_LOG(debug, "Stream Reset httpUpstream");
+  ENVOY_LOG_MISC(debug, "Stream Reset httpUpstream");
   resetEncoder(Network::ConnectionEvent::LocalClose);
 }
 
@@ -122,6 +122,7 @@ void HttpUpstream::resetEncoder(Network::ConnectionEvent event, bool inform_down
   }
   request_encoder_->getStream().removeCallbacks(*this);
   if (!write_half_closed_ || !read_half_closed_) {
+    ENVOY_LOG_MISC(debug, "no write/read half closed; resetting stream LocalReset");
     request_encoder_->getStream().resetStream(Http::StreamResetReason::LocalReset);
   }
   request_encoder_ = nullptr;
@@ -139,7 +140,7 @@ void HttpUpstream::resetEncoder(Network::ConnectionEvent event, bool inform_down
 void HttpUpstream::doneReading() {
   read_half_closed_ = true;
   if (write_half_closed_) {
-    ENVOY_CONN_LOG(debug, "doneReading()");
+    ENVOY_LOG_MISC(debug, "doneReading()");
     resetEncoder(Network::ConnectionEvent::LocalClose);
   }
 }
@@ -147,7 +148,7 @@ void HttpUpstream::doneReading() {
 void HttpUpstream::doneWriting() {
   write_half_closed_ = true;
   if (read_half_closed_) {
-    ENVOY_CONN_LOG(debug, "doneWriting()");
+    ENVOY_LOG_MISC(debug, "doneWriting()");
     resetEncoder(Network::ConnectionEvent::LocalClose);
   }
 }

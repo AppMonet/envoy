@@ -339,6 +339,7 @@ void UpstreamRequest::onPoolFailure(ConnectionPool::PoolFailureReason reason,
                                     absl::string_view transport_failure_reason,
                                     Upstream::HostDescriptionConstSharedPtr host) {
   Http::StreamResetReason reset_reason = Http::StreamResetReason::ConnectionFailure;
+
   switch (reason) {
   case ConnectionPool::PoolFailureReason::Overflow:
     reset_reason = Http::StreamResetReason::Overflow;
@@ -359,6 +360,9 @@ void UpstreamRequest::onPoolFailure(ConnectionPool::PoolFailureReason reason,
 
   // Mimic an upstream reset.
   onUpstreamHostSelected(host);
+
+  ENVOY_STREAM_LOG(debug, "pool failure; resetting stream", *parent_.callbacks());
+  ENVOY_LOG(debug, "pool failure: reason - {}", Http::Utility::resetReasonToString(reset_reason));
   onResetStream(reset_reason, transport_failure_reason);
 }
 

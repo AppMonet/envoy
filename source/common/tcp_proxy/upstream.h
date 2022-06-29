@@ -3,6 +3,7 @@
 #include "envoy/http/conn_pool.h"
 #include "envoy/network/connection.h"
 #include "envoy/tcp/conn_pool.h"
+#include "common/common/logger.h"
 #include "envoy/tcp/upstream.h"
 #include "envoy/upstream/load_balancer.h"
 #include "envoy/upstream/upstream.h"
@@ -165,7 +166,6 @@ private:
     void decode100ContinueHeaders(Http::ResponseHeaderMapPtr&&) override {}
     void decodeHeaders(Http::ResponseHeaderMapPtr&& headers, bool end_stream) override {
       if (!parent_.isValidResponse(*headers) || end_stream) {
-        ENVOY_CONN_LOG(debug, "resetEncoder because of invalid Status");
         parent_.resetEncoder(Network::ConnectionEvent::LocalClose);
       } else if (parent_.conn_pool_callbacks_ != nullptr) {
         parent_.conn_pool_callbacks_->onSuccess(*parent_.request_encoder_);
