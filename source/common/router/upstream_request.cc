@@ -361,8 +361,7 @@ void UpstreamRequest::onPoolFailure(ConnectionPool::PoolFailureReason reason,
   // Mimic an upstream reset.
   onUpstreamHostSelected(host);
 
-  ENVOY_STREAM_LOG(debug, "pool failure; resetting stream", *parent_.callbacks());
-  ENVOY_LOG(debug, "pool failure: reason - {}", Http::Utility::resetReasonToString(reset_reason));
+  ENVOY_STREAM_LOG(debug, "pool failure; resetting stream - {}", *parent_.callbacks(), Http::Utility::resetReasonToString(reset_reason));
   onResetStream(reset_reason, transport_failure_reason);
 }
 
